@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ==================== VISTA BÚSQUEDA PARA MANUALES ==================== -->
-    <!-- Permite filtrar y buscar manuales por título, módulo, estado, etc. -->
     
     <record id="view_wsl_documentacion_search" model="ir.ui.view">
         <field name="name">wsl.documentacion.manual.search</field>
@@ -24,7 +23,6 @@
     </record>
 
     <!-- ==================== VISTA KANBAN PARA MANUALES ==================== -->
-    <!-- Vista tipo tarjetas (como Trello) para mostrar los manuales -->
     
     <record id="view_wsl_documentacion_kanban" model="ir.ui.view">
         <field name="name">wsl.documentacion.manual.kanban</field>
@@ -60,7 +58,6 @@
     </record>
 
     <!-- ==================== VISTA LISTA/TABLA PARA MANUALES ==================== -->
-    <!-- Vista tipo tabla con columnas para ver todos los manuales de forma compacta -->
     
     <record id="view_wsl_documentacion_tree" model="ir.ui.view">
         <field name="name">wsl.documentacion.manual.tree</field>
@@ -79,7 +76,6 @@
     </record>
 
     <!-- ==================== VISTA FORMULARIO PARA MANUALES ==================== -->
-    <!-- Vista detallada para crear/editar un manual -->
     
     <record id="view_wsl_documentacion_form" model="ir.ui.view">
         <field name="name">wsl.documentacion.manual.form</field>
@@ -101,8 +97,11 @@
                         <group>
                             <field name="categoria_id" required="1" options="{'no_create': False, 'create': True}" placeholder="Seleccione o cree un módulo"/>
                             <field name="tipo" widget="radio"/>
-                            <field name="archivo_pdf" attrs="{'invisible': [('tipo', '!=', 'pdf')], 'required': [('tipo', '=', 'pdf')]}"/>
-                            <field name="url_video" attrs="{'invisible': [('tipo', '!=', 'video')], 'required': [('tipo', '=', 'video')]}"/>
+                            <field name="archivo_pdf" attrs="{'invisible': [('tipo', '!=', 'pdf')], 'required': [('tipo', '=', 'pdf')]}"
+                                   filename="titulo" 
+                                   help="Subir archivo PDF - Tamaño máximo recomendado: 25MB"/>
+                            <field name="url_video" attrs="{'invisible': [('tipo', '!=', 'video')], 'required': [('tipo', '=', 'video')]}"
+                                   placeholder="https://www.youtube.com/watch?v=xxxx"/>
                             <field name="numero_pagina"/>
                         </group>
                         <group>
@@ -111,8 +110,55 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Descripción">
-                            <field name="descripcion" widget="html"/>
+                        <!-- Vista previa del PDF usando widget pdf_viewer de Odoo -->
+                        <page string="Vista Previa" name="vista_previa" attrs="{'invisible': [('tipo', '!=', 'pdf')]}">
+                            <div attrs="{'invisible': [('archivo_pdf', '=', False)]}">
+                                <div class="alert alert-info text-center">
+                                    <strong>PDF cargado:</strong> <field name="titulo"/> - <field name="numero_pagina"/> páginas
+                                </div>
+                                <field name="archivo_pdf" 
+                                       widget="pdf_viewer" 
+                                       nolabel="1" 
+                                       style="width: 100%; height: 600px; display: block;"
+                                       attrs="{'invisible': ['|', ('archivo_pdf', '=', False), ('id', '=', False)]}"/>
+                                
+                                <div attrs="{'invisible': [('archivo_pdf', '!=', False), ('id', '!=', False)]}" 
+                                     style="color: #666666; text-align: center; padding: 80px 20px; border: 1px solid #e0e0e0; border-radius: 4px; background: #f9f9f9;">
+                                    <p>Guardar el registro para generar la vista previa del documento PDF.</p>
+                                </div>
+                            </div>
+                            <div class="text-center" attrs="{'invisible': [('archivo_pdf', '!=', False)]}">
+                                <p class="text-muted">No hay archivo PDF cargado</p>
+                                <p>Para ver la vista previa, suba un archivo PDF usando el campo "Archivo PDF"</p>
+                            </div>
+                        </page>
+
+                        <!-- Vista previa del Video -->
+                        <page string="Vista Previa Video" name="vista_previa_video" attrs="{'invisible': [('tipo', '!=', 'video')]}">
+                            <div attrs="{'invisible': [('url_video', '=', False)]}">
+                                <div class="alert alert-info text-center">
+                                    <strong>Video cargado:</strong> <field name="titulo"/>
+                                    <br/>
+                                    <strong>URL:</strong> <field name="url_video"/>
+                                </div>
+                                <!-- Campo Html que renderiza el iframe generado en Python -->
+                                <field name="youtube_embed_html"
+                                       widget="html"
+                                       nolabel="1"
+                                       readonly="1"
+                                       sanitize="false"/>
+                            </div>
+                            <div class="text-center" attrs="{'invisible': [('url_video', '!=', False)]}">
+                                <p class="text-muted">No hay URL de video cargada</p>
+                                <p>Ingrese una URL de YouTube como: https://www.youtube.com/watch?v=xxxxxxxxxxx</p>
+                                <p class="text-info">Formatos soportados: youtube.com/watch?v=... , youtu.be/... , youtube.com/shorts/...</p>
+                            </div>
+                        </page>
+
+                        <!-- Descripción -->
+                        <page string="Descripción" name="descripcion">
+                            <field name="descripcion" widget="html" 
+                                   placeholder="Descripción detallada del contenido del manual..."/>
                         </page>
                     </notebook>
                 </sheet>
@@ -125,7 +171,6 @@
     </record>
 
     <!-- ==================== VISTA FORMULARIO PARA MÓDULOS ==================== -->
-    <!-- Vista para ver/editar un módulo y sus manuales -->
     
     <record id="view_wsl_modulo_categoria_form" model="ir.ui.view">
         <field name="name">wsl.modulo.categoria.form</field>
@@ -148,29 +193,29 @@
                         </group>
                     </group>
                     <notebook>
-                        <!-- Página de manuales con lista visible y botón para crear nuevo -->
                         <page string="Lista de Manuales" name="manuales">
-                            <field name="manual_ids" nolabel="1" class="oe_kanban_global_click">
-                                <tree string="Manuales del Módulo" editable="bottom" 
+                            <field name="manual_ids" nolabel="1" readonly="1">
+                                <tree string="Manuales del Módulo" 
+                                      create="false" 
+                                      edit="false" 
+                                      delete="false"
                                       decoration-muted="estado == 'archivado'" 
                                       decoration-danger="estado == 'borrador'" 
-                                      decoration-success="estado == 'publicado'"
-                                      limit="20">
-                                    <field name="titulo" string="Título" width="400"/>
-                                    <field name="tipo" string="Tipo" widget="badge" width="100"/>
-                                    <field name="numero_pagina" string="Páginas" width="80"/>
-                                    <field name="estado" string="Estado" widget="badge" width="120"/>
-                                    <field name="es_induccion" string="Inducción" width="80"/>
-                                    <field name="fecha_creacion" string="Fecha Creación" width="150"/>
+                                      decoration-success="estado == 'publicado'">
+                                    <field name="titulo" string="Título"/>
+                                    <field name="tipo" string="Tipo" widget="badge"/>
+                                    <field name="numero_pagina" string="Páginas"/>
+                                    <field name="estado" string="Estado" widget="badge"/>
+                                    <field name="es_induccion" string="Inducción"/>
+                                    <field name="fecha_creacion" string="Fecha Creación"/>
                                 </tree>
                             </field>
-                            <div class="mt-3 text-center">
+                            <div class="text-center mt-3">
                                 <button name="%(action_wsl_documentacion)d" 
                                         type="action" 
-                                        string="+ Crear Nuevo Manual en este Módulo" 
+                                        string="Añadir una línea" 
                                         class="btn btn-primary"
-                                        context="{'default_categoria_id': active_id}"
-                                        help="Agregar un nuevo manual a este módulo"/>
+                                        context="{'default_categoria_id': active_id}"/>
                             </div>
                         </page>
                     </notebook>
@@ -179,8 +224,7 @@
         </field>
     </record>
 
-        <!-- ==================== VISTA KANBAN PARA MÓDULOS ==================== -->
-    <!-- Vista principal que muestra los módulos como tarjetas -->
+    <!-- ==================== VISTA KANBAN PARA MÓDULOS ==================== -->
     
     <record id="view_wsl_modulo_categoria_kanban" model="ir.ui.view">
         <field name="name">wsl.modulo.categoria.kanban</field>
@@ -224,7 +268,6 @@
     </record>
 
     <!-- ==================== VISTA LISTA PARA MÓDULOS ==================== -->
-    <!-- Vista tipo tabla para los módulos -->
     
     <record id="view_wsl_modulo_categoria_tree" model="ir.ui.view">
         <field name="name">wsl.modulo.categoria.tree</field>
@@ -240,7 +283,6 @@
     </record>
 
     <!-- ==================== VISTA CONFIGURACIÓN DE MÓDULOS ==================== -->
-    <!-- Ventana para crear nuevos módulos -->
     
     <record id="view_wsl_configuracion_modulos_form" model="ir.ui.view">
         <field name="name">wsl.configuracion.modulos.form</field>
@@ -280,9 +322,7 @@
     </record>
 
     <!-- ==================== ACCIONES ==================== -->
-    <!-- Definen qué ventanas se abren al hacer clic en los menús -->
     
-    <!-- Acción para abrir los manuales -->
     <record id="action_wsl_documentacion" model="ir.actions.act_window">
         <field name="name">Manuales</field>
         <field name="res_model">wsl.documentacion.manual</field>
@@ -297,7 +337,6 @@
         </field>
     </record>
 
-    <!-- Acción para abrir las inducciones (documentos marcados como inducción) -->
     <record id="action_wsl_inducciones" model="ir.actions.act_window">
         <field name="name">Inducciones</field>
         <field name="res_model">wsl.documentacion.manual</field>
@@ -305,7 +344,6 @@
         <field name="domain">[('es_induccion','=',True)]</field>
     </record>
 
-    <!-- Acción para abrir los módulos (principal) -->
     <record id="action_wsl_modulo_categoria" model="ir.actions.act_window">
         <field name="name">Módulos</field>
         <field name="res_model">wsl.modulo.categoria</field>
@@ -320,7 +358,6 @@
         </field>
     </record>
 
-    <!-- Acción para la configuración de módulos -->
     <record id="action_config_modulos" model="ir.actions.act_window">
         <field name="name">Configuración de Módulos</field>
         <field name="res_model">wsl.configuracion.modulos</field>
@@ -328,7 +365,6 @@
         <field name="target">new</field>
     </record>
 
-    <!-- Acción para la configuración de roles -->
     <record id="action_config_roles" model="ir.actions.act_window">
         <field name="name">Configuración de Roles</field>
         <field name="res_model">wsl.configuracion.roles</field>
