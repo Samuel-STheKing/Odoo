@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==================== VISTA BÚSQUEDA PARA MANUALES ==================== -->
+    <!-- Permite filtrar y buscar manuales por título, módulo, estado, etc. -->
+    
+    <record id="view_wsl_documentacion_search" model="ir.ui.view">
+        <field name="name">wsl.documentacion.manual.search</field>
+        <field name="model">wsl.documentacion.manual</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="titulo" placeholder="Buscar por título..."/>
+                <field name="categoria_id" placeholder="Filtrar por módulo..."/>
+                <filter name="induccion" string="Solo Inducciones" domain="[('es_induccion','=',True)]" help="Mostrar solo documentos de inducción"/>
+                <filter name="publicado" string="Publicados" domain="[('estado','=','publicado')]" help="Mostrar solo documentos publicados"/>
+                <separator/>
+                <filter name="borrador" string="Borradores" domain="[('estado','=','borrador')]" help="Mostrar documentos en borrador"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_categoria" string="Módulo" context="{'group_by':'categoria_id'}"/>
+                    <filter name="group_tipo" string="Tipo" context="{'group_by':'tipo'}"/>
+                    <filter name="group_estado" string="Estado" context="{'group_by':'estado'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ==================== VISTA KANBAN PARA MANUALES ==================== -->
+    <!-- Vista tipo tarjetas (como Trello) para mostrar los manuales -->
+    
+    <record id="view_wsl_documentacion_kanban" model="ir.ui.view">
+        <field name="name">wsl.documentacion.manual.kanban</field>
+        <field name="model">wsl.documentacion.manual</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="titulo"/>
+                <field name="tipo"/>
+                <field name="categoria_id"/>
+                <field name="estado"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-attf-src="/web/static/src/img/ #{record.tipo.raw_value == 'video' ? 'video.png' : 'pdf.png'}" alt="Icono" width="50"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="titulo"/>
+                                </strong>
+                                <div class="text-muted o_kanban_record_subtitle">
+                                    Módulo: <field name="categoria_id"/>
+                                </div>
+                                <div class="o_kanban_record_subtitle">
+                                    Estado: <field name="estado"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ==================== VISTA LISTA/TABLA PARA MANUALES ==================== -->
+    <!-- Vista tipo tabla con columnas para ver todos los manuales de forma compacta -->
+    
+    <record id="view_wsl_documentacion_tree" model="ir.ui.view">
+        <field name="name">wsl.documentacion.manual.tree</field>
+        <field name="model">wsl.documentacion.manual</field>
+        <field name="arch" type="xml">
+            <tree string="Lista de Manuales" editable="top" decoration-muted="estado == 'archivado'" decoration-danger="estado == 'borrador'" decoration-success="estado == 'publicado'">
+                <field name="titulo" string="Título"/>
+                <field name="categoria_id" string="Módulo"/>
+                <field name="tipo" string="Tipo" widget="badge"/>
+                <field name="numero_pagina" string="Páginas"/>
+                <field name="estado" string="Estado" widget="badge"/>
+                <field name="es_induccion" string="Inducción"/>
+                <field name="fecha_creacion" string="Fecha"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ==================== VISTA FORMULARIO PARA MANUALES ==================== -->
+    <!-- Vista detallada para crear/editar un manual -->
+    
+    <record id="view_wsl_documentacion_form" model="ir.ui.view">
+        <field name="name">wsl.documentacion.manual.form</field>
+        <field name="model">wsl.documentacion.manual</field>
+        <field name="arch" type="xml">
+            <form string="Manual">
+                <header>
+                    <button name="action_publicar" type="object" string="Publicar" class="btn-primary" states="borrador"/>
+                    <button name="action_archivar" type="object" string="Archivar" states="publicado"/>
+                    <field name="estado" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="titulo" placeholder="Título del documento..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="categoria_id" required="1" options="{'no_create': False, 'create': True}" placeholder="Seleccione o cree un módulo"/>
+                            <field name="tipo" widget="radio"/>
+                            <field name="archivo_pdf" attrs="{'invisible': [('tipo', '!=', 'pdf')], 'required': [('tipo', '=', 'pdf')]}"/>
+                            <field name="url_video" attrs="{'invisible': [('tipo', '!=', 'video')], 'required': [('tipo', '=', 'video')]}"/>
+                            <field name="numero_pagina"/>
+                        </group>
+                        <group>
+                            <field name="roles_ids" widget="many2many_tags"/>
+                            <field name="es_induccion"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Descripción">
+                            <field name="descripcion" widget="html"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== VISTA FORMULARIO PARA MÓDULOS ==================== -->
+    <!-- Vista para ver/editar un módulo y sus manuales -->
+    
+    <record id="view_wsl_modulo_categoria_form" model="ir.ui.view">
+        <field name="name">wsl.modulo.categoria.form</field>
+        <field name="model">wsl.modulo.categoria</field>
+        <field name="arch" type="xml">
+            <form string="Módulo">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="nombre" placeholder="Nombre del Módulo..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="descripcion" placeholder="Descripción del módulo"/>
+                            <field name="activo"/>
+                        </group>
+                        <group>
+                            <field name="cantidad_manuales" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <!-- Página de manuales con lista visible y botón para crear nuevo -->
+                        <page string="Lista de Manuales" name="manuales">
+                            <field name="manual_ids" nolabel="1" class="oe_kanban_global_click">
+                                <tree string="Manuales del Módulo" editable="bottom" 
+                                      decoration-muted="estado == 'archivado'" 
+                                      decoration-danger="estado == 'borrador'" 
+                                      decoration-success="estado == 'publicado'"
+                                      limit="20">
+                                    <field name="titulo" string="Título" width="400"/>
+                                    <field name="tipo" string="Tipo" widget="badge" width="100"/>
+                                    <field name="numero_pagina" string="Páginas" width="80"/>
+                                    <field name="estado" string="Estado" widget="badge" width="120"/>
+                                    <field name="es_induccion" string="Inducción" width="80"/>
+                                    <field name="fecha_creacion" string="Fecha Creación" width="150"/>
+                                </tree>
+                            </field>
+                            <div class="mt-3 text-center">
+                                <button name="%(action_wsl_documentacion)d" 
+                                        type="action" 
+                                        string="+ Crear Nuevo Manual en este Módulo" 
+                                        class="btn btn-primary"
+                                        context="{'default_categoria_id': active_id}"
+                                        help="Agregar un nuevo manual a este módulo"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+        <!-- ==================== VISTA KANBAN PARA MÓDULOS ==================== -->
+    <!-- Vista principal que muestra los módulos como tarjetas -->
+    
+    <record id="view_wsl_modulo_categoria_kanban" model="ir.ui.view">
+        <field name="name">wsl.modulo.categoria.kanban</field>
+        <field name="model">wsl.modulo.categoria</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="nombre"/>
+                <field name="descripcion"/>
+                <field name="cantidad_manuales"/>
+                <field name="activo"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <i class="fa fa-folder-open-o" style="font-size: 40px; color: #7c7bad;"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="nombre"/>
+                                </strong>
+                                <div class="text-muted">
+                                    <field name="descripcion" nolabel="1"/>
+                                </div>
+                                <div class="o_kanban_record_subtitle">
+                                    Manuales: <field name="cantidad_manuales"/>
+                                </div>
+                                <div class="o_kanban_record_subtitle">
+                                    <t t-if="record.activo.value == true">
+                                        Estado: Activo
+                                    </t>
+                                    <t t-if="record.activo.value == false">
+                                        Estado: Inactivo
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ==================== VISTA LISTA PARA MÓDULOS ==================== -->
+    <!-- Vista tipo tabla para los módulos -->
+    
+    <record id="view_wsl_modulo_categoria_tree" model="ir.ui.view">
+        <field name="name">wsl.modulo.categoria.tree</field>
+        <field name="model">wsl.modulo.categoria</field>
+        <field name="arch" type="xml">
+            <tree string="Módulos">
+                <field name="nombre" string="Nombre"/>
+                <field name="descripcion" string="Descripción"/>
+                <field name="cantidad_manuales" string="Total Manuales" sum="Total"/>
+                <field name="activo" string="Activo"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ==================== VISTA CONFIGURACIÓN DE MÓDULOS ==================== -->
+    <!-- Ventana para crear nuevos módulos -->
+    
+    <record id="view_wsl_configuracion_modulos_form" model="ir.ui.view">
+        <field name="name">wsl.configuracion.modulos.form</field>
+        <field name="model">wsl.configuracion.modulos</field>
+        <field name="arch" type="xml">
+            <form string="Configuración de Módulos">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Configuración de Módulos</h1>
+                        <p class="text-muted">Desde esta ventana puede crear nuevos módulos para organizar sus manuales</p>
+                    </div>
+                    
+                    <separator string="Crear Nuevo Módulo"/>
+                    <group>
+                        <group>
+                            <field name="nuevo_modulo_nombre" 
+                                   placeholder="Ej: Ventas, Compras, Contabilidad..." 
+                                   required="1"/>
+                            <field name="nuevo_modulo_descripcion" 
+                                   placeholder="Descripción del módulo (opcional)"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_crear_modulo" 
+                                string="Crear Módulo" 
+                                type="object" 
+                                class="btn-primary"/>
+                        <button name="action_ver_modulos" 
+                                string="Ver Módulos Existentes" 
+                                type="object" 
+                                class="btn-secondary"/>
+                        <button string="Cerrar" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== ACCIONES ==================== -->
+    <!-- Definen qué ventanas se abren al hacer clic en los menús -->
+    
+    <!-- Acción para abrir los manuales -->
+    <record id="action_wsl_documentacion" model="ir.actions.act_window">
+        <field name="name">Manuales</field>
+        <field name="res_model">wsl.documentacion.manual</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bienvenido a Manuales
+            </p>
+            <p>
+                Para crear un manual, primero debe seleccionar o crear un módulo.
+            </p>
+        </field>
+    </record>
+
+    <!-- Acción para abrir las inducciones (documentos marcados como inducción) -->
+    <record id="action_wsl_inducciones" model="ir.actions.act_window">
+        <field name="name">Inducciones</field>
+        <field name="res_model">wsl.documentacion.manual</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="domain">[('es_induccion','=',True)]</field>
+    </record>
+
+    <!-- Acción para abrir los módulos (principal) -->
+    <record id="action_wsl_modulo_categoria" model="ir.actions.act_window">
+        <field name="name">Módulos</field>
+        <field name="res_model">wsl.modulo.categoria</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Bienvenido a Módulos
+            </p>
+            <p>
+                Aquí puede crear módulos (Ventas, Compras, etc.) para organizar sus manuales.
+            </p>
+        </field>
+    </record>
+
+    <!-- Acción para la configuración de módulos -->
+    <record id="action_config_modulos" model="ir.actions.act_window">
+        <field name="name">Configuración de Módulos</field>
+        <field name="res_model">wsl.configuracion.modulos</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Acción para la configuración de roles -->
+    <record id="action_config_roles" model="ir.actions.act_window">
+        <field name="name">Configuración de Roles</field>
+        <field name="res_model">wsl.configuracion.roles</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,21 @@
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.so
+
+# Odoo
+*.db
+*.log
+*.pid
+
+# Editores
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos temporales
+*.tmp
+*.bak

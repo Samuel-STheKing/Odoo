@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_documentacion_category" model="ir.module.category">
+        <field name="name">Documentación WSL</field>
+        <field name="description">Permisos para gestión documental</field>
+    </record>
+
+    <record id="group_documentacion_user" model="res.groups">
+        <field name="name">Usuario de Documentación</field>
+        <field name="category_id" ref="module_documentacion_category"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_documentacion_manager" model="res.groups">
+        <field name="name">Administrador de Documentación</field>
+        <field name="category_id" ref="module_documentacion_category"/>
+        <field name="implied_ids" eval="[(4, ref('group_documentacion_user'))]"/>
+    </record>
+
+    <record id="documentacion_rule_user" model="ir.rule">
+        <field name="name">Solo ver documentos publicados</field>
+        <field name="model_id" ref="model_wsl_documentacion_manual"/>
+        <field name="groups" eval="[(4, ref('group_documentacion_user'))]"/>
+        <field name="domain_force">[('estado','=','publicado')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="documentacion_rule_manager" model="ir.rule">
+        <field name="name">Administradores: todo el acceso</field>
+        <field name="model_id" ref="model_wsl_documentacion_manual"/>
+        <field name="groups" eval="[(4, ref('group_documentacion_manager'))]"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>
