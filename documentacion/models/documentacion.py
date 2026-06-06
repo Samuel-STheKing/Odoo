@@ -51,11 +51,17 @@ class DocumentacionManual(models.Model):
     es_induccion = fields.Boolean(string='Es documento de inducción', default=False)
     fecha_creacion = fields.Datetime(string='Fecha de creación', default=fields.Datetime.now)
 
+    def action_guardar_edicion(self):
+        """Guarda el registro sin cambiar el estado (permanece en En Edición)."""
+        return True
+
     def action_culminar(self):
-        self.estado = 'culminado'
+        for record in self:
+            record.write({'estado': 'culminado'})
 
     def action_en_edicion(self):
-        self.estado = 'en_edicion'
+        for record in self:
+            record.write({'estado': 'en_edicion'})
 
     @api.depends('url_video')
     def _compute_youtube_embed_url(self):

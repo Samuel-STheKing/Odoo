@@ -99,13 +99,26 @@
         <field name="arch" type="xml">
             <form string="Manual">
                 <header>
-                    <button name="action_culminar" type="object" string="Marcar como Culminado"
-                            class="btn-primary" states="en_edicion"
+                    <!-- Botón visible en En Edición: guarda sin cambiar estado -->
+                    <button name="action_guardar_edicion"
+                            type="object"
+                            string="Guardar Edición"
+                            attrs="{'invisible': [('estado', '!=', 'en_edicion')]}"/>
+                    <!-- Botón visible en En Edición: culmina el documento -->
+                    <button name="action_culminar"
+                            type="object"
+                            string="Culminar"
+                            class="btn-primary"
+                            attrs="{'invisible': [('estado', '!=', 'en_edicion')]}"
                             groups="documentacion.group_documentacion_manager"/>
-                    <button name="action_en_edicion" type="object" string="Reabrir para Edición"
-                            states="culminado"
+                    <!-- Botón visible solo cuando está Culminado: regresa a edición -->
+                    <button name="action_en_edicion"
+                            type="object"
+                            string="Reabrir para Edición"
+                            attrs="{'invisible': [('estado', '!=', 'culminado')]}"
                             groups="documentacion.group_documentacion_manager"/>
-                    <field name="estado" widget="statusbar"
+                    <field name="estado"
+                           widget="statusbar"
                            statusbar_visible="en_edicion,culminado"/>
                 </header>
                 <sheet>
