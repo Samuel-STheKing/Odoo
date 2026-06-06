@@ -1,5 +1,5 @@
 {
-    'name': 'Documentación WSL',
+    'name': 'Documentación',
     'version': '16.0.1.0.0',
     'category': 'Documentation',
     'summary': 'Gestión de manuales, inducciones y configuración por módulos',

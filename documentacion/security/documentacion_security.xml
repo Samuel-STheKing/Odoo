@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="module_documentacion_category" model="ir.module.category">
-        <field name="name">Documentación WSL</field>
+        <field name="name">Documentación</field>
         <field name="description">Permisos para gestión documental</field>
     </record>
 
@@ -17,20 +17,50 @@
         <field name="implied_ids" eval="[(4, ref('group_documentacion_user'))]"/>
     </record>
 
+    <!-- ==================== REGLAS PARA documentacion.manual ==================== -->
+
+    <!-- Usuario: solo manuales publicados cuyo módulo le corresponde por grupo -->
     <record id="documentacion_rule_user" model="ir.rule">
-        <field name="name">Solo ver documentos publicados</field>
-        <field name="model_id" ref="model_wsl_documentacion_manual"/>
+        <field name="name">Manuales: acceso de usuario</field>
+        <field name="model_id" ref="model_documentacion_manual"/>
         <field name="groups" eval="[(4, ref('group_documentacion_user'))]"/>
-        <field name="domain_force">[('estado','=','publicado')]</field>
+        <field name="domain_force">['&amp;', ('estado','=','culminado'), '|', ('categoria_id.group_ids','=',False), ('categoria_id.group_ids.users','=',user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
 
+    <!-- Administrador: acceso total a todos los manuales -->
     <record id="documentacion_rule_manager" model="ir.rule">
-        <field name="name">Administradores: todo el acceso</field>
-        <field name="model_id" ref="model_wsl_documentacion_manual"/>
+        <field name="name">Manuales: acceso de administrador</field>
+        <field name="model_id" ref="model_documentacion_manual"/>
+        <field name="groups" eval="[(4, ref('group_documentacion_manager'))]"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- ==================== REGLAS PARA modulo.categoria ==================== -->
+
+    <!-- Usuario: solo ve módulos para los que tiene permiso de aplicación -->
+    <record id="modulo_categoria_rule_user" model="ir.rule">
+        <field name="name">Módulos: acceso de usuario</field>
+        <field name="model_id" ref="model_modulo_categoria"/>
+        <field name="groups" eval="[(4, ref('group_documentacion_user'))]"/>
+        <field name="domain_force">['|', ('group_ids','=',False), ('group_ids.users','=',user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Administrador: ve y gestiona todos los módulos -->
+    <record id="modulo_categoria_rule_manager" model="ir.rule">
+        <field name="name">Módulos: acceso de administrador</field>
+        <field name="model_id" ref="model_modulo_categoria"/>
         <field name="groups" eval="[(4, ref('group_documentacion_manager'))]"/>
         <field name="domain_force">[(1,'=',1)]</field>
         <field name="perm_read" eval="True"/>

@@ -2,12 +2,12 @@ from odoo import models, fields, api
 import re
 
 class DocumentacionManual(models.Model):
-    _name = 'wsl.documentacion.manual'
+    _name = 'documentacion.manual'
     _description = 'Almacena los manuales/documentos creados por los usuarios'
     _rec_name = 'titulo'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    categoria_id = fields.Many2one('wsl.modulo.categoria', string='Módulo/Categoría', required=True)
+    categoria_id = fields.Many2one('modulo.categoria', string='Módulo/Categoría', required=True)
     
     titulo = fields.Char(string='Título', required=True, tracking=True)
     descripcion = fields.Html(string='Descripción', tracking=True)
@@ -40,21 +40,22 @@ class DocumentacionManual(models.Model):
 
     numero_pagina = fields.Integer(string='Número de Página', default=1)
     roles_ids = fields.Many2many('res.groups', string='Roles aplicables')
-    
+
+    active = fields.Boolean(default=True, tracking=True)
+
     estado = fields.Selection([
-        ('borrador', 'Borrador'),
-        ('publicado', 'Publicado'),
-        ('archivado', 'Archivado')
-    ], default='borrador', tracking=True)
-    
+        ('en_edicion', 'En Edición'),
+        ('culminado', 'Culminado'),
+    ], default='en_edicion', tracking=True)
+
     es_induccion = fields.Boolean(string='Es documento de inducción', default=False)
     fecha_creacion = fields.Datetime(string='Fecha de creación', default=fields.Datetime.now)
 
-    def action_publicar(self):
-        self.estado = 'publicado'
+    def action_culminar(self):
+        self.estado = 'culminado'
 
-    def action_archivar(self):
-        self.estado = 'archivado'
+    def action_en_edicion(self):
+        self.estado = 'en_edicion'
 
     @api.depends('url_video')
     def _compute_youtube_embed_url(self):

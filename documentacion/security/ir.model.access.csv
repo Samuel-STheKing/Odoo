@@ -1,7 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_wsl_documentacion_user,Documentacion Manual User,model_wsl_documentacion_manual,group_documentacion_user,1,0,0,0
-access_wsl_documentacion_manager,Documentacion Manual Manager,model_wsl_documentacion_manual,group_documentacion_manager,1,1,1,1
-access_wsl_config_modulos,Config Modulos,model_wsl_configuracion_modulos,group_documentacion_manager,1,1,1,1
-access_wsl_config_roles,Config Roles,model_wsl_configuracion_roles,group_documentacion_manager,1,1,1,1
-access_wsl_modulo_categoria_user,Modulo Categoria User,model_wsl_modulo_categoria,group_documentacion_user,1,0,0,0
-access_wsl_modulo_categoria_manager,Modulo Categoria Manager,model_wsl_modulo_categoria,group_documentacion_manager,1,1,1,1
+access_documentacion_user,Documentacion Manual User,model_documentacion_manual,group_documentacion_user,1,0,0,0
+access_documentacion_manager,Documentacion Manual Manager,model_documentacion_manual,group_documentacion_manager,1,1,1,1
+access_modulo_categoria_user,Modulo Categoria User,model_modulo_categoria,group_documentacion_user,1,0,0,0
+access_modulo_categoria_manager,Modulo Categoria Manager,model_modulo_categoria,group_documentacion_manager,1,1,1,1
