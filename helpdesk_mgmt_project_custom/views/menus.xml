@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Menú principal -->
+    <menuitem 
+        id="menu_helpdesk_project_root"
+        name="Helpdesk Project"
+        sequence="10"
+        groups="helpdesk_mgmt.group_helpdesk_user_own,project.group_project_manager" />
+
+    <!-- Submenú: Proyectos -->
+    <menuitem 
+        id="menu_project_with_tickets"
+        name="Proyectos"
+        parent="menu_helpdesk_project_root"
+        action="project.open_view_project_all"
+        sequence="5" />
+
+    <!-- Submenú: Tickets por Proyecto -->
+    <menuitem 
+        id="menu_helpdesk_tickets_by_project"
+        name="Tickets por Proyecto"
+        parent="menu_helpdesk_project_root"
+        action="helpdesk_mgmt_project_custom.ticket_action_from_project"
+        sequence="10" />
+
+</odoo>

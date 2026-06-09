@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<odoo>
+    <record id="view_task_form2" model="ir.ui.view">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    class="oe_stat_button"
+                    type="object"
+                    icon="fa-life-ring"
+                    name="action_open_helpdesk_tickets_from_task"
+                    context="{'default_task_id': active_id, 'default_project_id': project_id}"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                >
+                    <field string="Tickets" name="ticket_count" widget="statinfo" />
+                </button>
+            </xpath>
+        </field>
+    </record>
+    
+    <record id="view_task_search" model="ir.ui.view">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='inactive']" position="after">
+                <separator />
+                <filter
+                    string="Open Tickets"
+                    name="open_tickets"
+                    domain="[('ticket_ids', '!=', False), ('ticket_ids.closed', '=', False)]"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                />
+            </xpath>
+        </field>
+    </record>
+    
+    <record id="view_task_kanban_helpdesk" model="ir.ui.view">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_kanban_bottom_left')]" position="inside">
+                <div
+                    t-if="record.ticket_count.raw_value &gt; 0"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                    class="d-inline-block align-middle me-2"
+                >
+                    <a
+                        class="o_project_kanban_box text-muted"
+                        name="action_open_helpdesk_tickets_from_task"
+                        type="object"
+                    >
+                        <i class="fa fa-life-ring me-1" title="Tickets"/>
+                        <span class="o_value fw-bold">
+                            <t t-esc="record.ticket_count.raw_value"/>
+                        </span>
+                    </a>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
