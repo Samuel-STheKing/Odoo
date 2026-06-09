@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8' ?>
 <odoo>
+
+    <!-- Form View -->
     <record id="view_task_form2" model="ir.ui.view">
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2" />
@@ -18,7 +20,8 @@
             </xpath>
         </field>
     </record>
-    
+
+    <!-- Search View -->
     <record id="view_task_search" model="ir.ui.view">
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_search_form" />
@@ -34,14 +37,15 @@
             </xpath>
         </field>
     </record>
-    
+
+    <!-- Kanban View - CORREGIDO -->
     <record id="view_task_kanban_helpdesk" model="ir.ui.view">
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_kanban" />
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('oe_kanban_bottom_left')]" position="inside">
                 <div
-                    t-if="record.ticket_count.raw_value &gt; 0"
+                    t-if="record.ticket_count and record.ticket_count.raw_value > 0"
                     groups="helpdesk_mgmt.group_helpdesk_user_own"
                     class="d-inline-block align-middle me-2"
                 >
@@ -57,6 +61,12 @@
                     </a>
                 </div>
             </xpath>
+
+            <!-- Asegurar que el campo esté disponible en Kanban -->
+            <xpath expr="//kanban" position="inside">
+                <field name="ticket_count"/>
+            </xpath>
         </field>
     </record>
+
 </odoo>
