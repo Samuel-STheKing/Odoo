@@ -85,6 +85,7 @@
                   decoration-success="estado == 'culminado'">
                 <field name="titulo" string="Título"/>
                 <field name="tipo" string="Tipo" widget="badge"/>
+                <field name="version" string="Versión" optional="show"/>
                 <field name="numero_pagina" string="Páginas"/>
                 <field name="estado" string="Estado" widget="badge"/>
                 <field name="es_induccion" string="Inducción"/>
@@ -99,12 +100,24 @@
         <field name="arch" type="xml">
             <form string="Manual">
                 <header>
-                    <button name="action_culminar" type="object" string="Marcar como Culminado"
-                            class="btn-primary" states="en_edicion"
+                    <button name="action_guardar_edicion" 
+                            type="object" 
+                            string="Guardar Edición"
+                            class="btn-primary"
+                            attrs="{'invisible': [('estado', '!=', 'en_edicion')]}"/>
+                    
+                    <button name="action_culminar" 
+                            type="object" 
+                            string="Marcar como Culminado"
+                            attrs="{'invisible': [('estado', '!=', 'en_edicion')]}"
                             groups="documentacion.group_documentacion_manager"/>
-                    <button name="action_en_edicion" type="object" string="Reabrir para Edición"
-                            states="culminado"
+                    
+                    <button name="action_en_edicion" 
+                            type="object" 
+                            string="Reabrir para Edición"
+                            attrs="{'invisible': [('estado', '!=', 'culminado')]}"
                             groups="documentacion.group_documentacion_manager"/>
+                    
                     <field name="estado" widget="statusbar"
                            statusbar_visible="en_edicion,culminado"/>
                 </header>
@@ -128,6 +141,7 @@
                                    attrs="{'invisible': [('tipo', '!=', 'video')], 'required': [('tipo', '=', 'video')]}"
                                    placeholder="https://www.youtube.com/watch?v=xxxx"/>
                             <field name="numero_pagina"/>
+                            <field name="version" placeholder="ej: 1.0"/>
                         </group>
                         <group>
                             <field name="roles_ids" widget="many2many_tags"/>

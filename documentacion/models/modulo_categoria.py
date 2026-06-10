@@ -2,7 +2,7 @@ from odoo import models, fields, api
 
 class ModuloCategoria(models.Model):
     _name = 'modulo.categoria'
-    _description = 'Módulos o categorías que agrupan manuales (ej: Ventas, Compras, Contabilidad)'
+    _description = 'Módulos o categorías que agrupan manuales'
     _rec_name = 'nombre'
     _order = 'nombre'
 
@@ -15,7 +15,6 @@ class ModuloCategoria(models.Model):
     cantidad_manuales = fields.Integer(string='Cantidad de Manuales', compute='_compute_cantidad_manuales')
 
     # Grupos de Odoo autorizados a ver este módulo y sus manuales.
-    # Si está vacío, todos los usuarios de documentación pueden verlo.
     group_ids = fields.Many2many(
         'res.groups',
         'modulo_categoria_groups_rel',
@@ -23,8 +22,8 @@ class ModuloCategoria(models.Model):
         'group_id',
         string='Aplicaciones con Acceso',
         domain="[('category_id', '!=', False)]",
-        help='Seleccione los grupos de Odoo cuyo permiso habilita ver este módulo. '
-             'Si no se selecciona ninguno, todos los usuarios de documentación pueden verlo.',
+        help='Grupos de Odoo que pueden ver este módulo y sus manuales. '
+             'Si está vacío, todos los usuarios con acceso al módulo Documentación pueden verlo.',
     )
     
     @api.depends('manual_ids')
@@ -41,3 +40,22 @@ class ModuloCategoria(models.Model):
             'domain': [('categoria_id', '=', self.id)],
             'context': {'default_categoria_id': self.id},
         }
+
+    # ==================== SINCRONIZACIÓN DE ACCESO ====================
+    @api.model
+    def create(self, vals):
+        record = super().create(vals)
+        record._sincronizar_grupos_a_manuales()
+        return record
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'group_ids' in vals:
+            self._sincronizar_grupos_a_manuales()
+        return res
+
+    def _sincronizar_grupos_a_manuales(self):
+        """Propaga los grupos del módulo a todos sus manuales existentes"""
+        for modulo in self:
+            if modulo.manual_ids:
+                modulo.manual_ids.write({'roles_ids': [(6, 0, modulo.group_ids.ids)]})
