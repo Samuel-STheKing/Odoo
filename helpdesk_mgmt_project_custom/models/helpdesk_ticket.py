@@ -4,7 +4,6 @@ from odoo import api, fields, models
 class HelpdeskTicket(models.Model):
     _inherit = "helpdesk.ticket"
     
-    # Añadir nuevos campos
     is_cancelled = fields.Boolean(string="Is Cancelled", default=False)
     is_rejected = fields.Boolean(string="Is Rejected", default=False)
 
@@ -40,7 +39,6 @@ class HelpdeskTicket(models.Model):
 
     @api.onchange("project_id")
     def _onchange_project_id(self):
-        """Filter tasks when project changes."""
         for record in self:
             if record.project_id:
                 record.task_ids = record.task_ids.filtered(
@@ -53,26 +51,28 @@ class HelpdeskTicket(models.Model):
     def create(self, vals_list):
         tickets = super().create(vals_list)
         for ticket in tickets:
-            if ticket.closed and ticket.task_ids:
-                ticket._sync_tasks_stage()
-            if ticket.stage_id and ticket.stage_id.fold and ticket.task_ids:
-                ticket._sync_tasks_from_stage()
-            if ticket.is_cancelled or ticket.is_rejected:
-                ticket._sync_tasks_cancelled_rejected()
+            ticket._auto_sync_from_stage()
         return tickets
 
     def write(self, vals):
         result = super().write(vals)
 
-        is_cancelling = 'is_cancelled' in vals and vals.get('is_cancelled')
-        is_rejecting  = 'is_rejected'  in vals and vals.get('is_rejected')
-
-        if is_cancelling or is_rejecting:
+        # === PRIORIDAD ALTA: Detectar Cancelado / Rechazado ===
+        stage_changed = 'stage_id' in vals
+        if stage_changed:
             for ticket in self:
-                if ticket.task_ids:
-                    ticket._sync_tasks_cancelled_rejected()
-            return result
+                ticket._auto_sync_from_stage()
 
+        is_cancelling = 'is_cancelled' in vals and vals.get('is_cancelled')
+        is_rejecting = 'is_rejected' in vals and vals.get('is_rejected')
+
+        if is_cancelling or is_rejecting or stage_changed:
+            for ticket in self:
+                if ticket.task_ids and (ticket.is_cancelled or ticket.is_rejected):
+                    ticket._sync_tasks_cancelled_rejected()
+                    continue  # ← IMPORTANTE: Saltamos el resto de lógica para este ticket
+
+        # Solo se ejecuta si NO está cancelado ni rechazado
         if 'closed' in vals and vals.get('closed'):
             for ticket in self:
                 if ticket.task_ids and not ticket.is_cancelled and not ticket.is_rejected:
@@ -104,15 +104,31 @@ class HelpdeskTicket(models.Model):
         
         return result
 
+    def _auto_sync_from_stage(self):
+        """Detecta automáticamente Cancelado o Rechazado por etapa"""
+        self.ensure_one()
+        if not self.stage_id or not self.stage_id.fold:
+            return
+
+        stage_name = (self.stage_id.name or "").strip().lower()
+        
+        if stage_name in ["cancelado", "cancelada"]:
+            if not self.is_cancelled:
+                self.write({'is_cancelled': True, 'closed': True})
+        elif stage_name in ["rechazado", "rechazada", "rejected"]:
+            if not self.is_rejected:
+                self.write({'is_rejected': True, 'closed': True})
+
+    # ====================== SINCRONIZACIÓN ======================
+
     def _sync_tasks_stage(self):
-        """Sincronizar tareas cuando el ticket se cierra"""
         for ticket in self:
             if ticket.closed and ticket.task_ids and not ticket.is_cancelled and not ticket.is_rejected:
                 for task in ticket.task_ids:
                     task.action_mark_as_done()
 
     def _sync_tasks_cancelled_rejected(self):
-        """Mover tareas a Cancelado/Rechazado"""
+        """Mover tareas a la etapa correcta según estado del ticket"""
         for ticket in self:
             if not ticket.task_ids:
                 continue
@@ -126,7 +142,6 @@ class HelpdeskTicket(models.Model):
                 ticket.write({'closed': True})
     
     def _sync_tasks_unmark(self):
-        """Resetear tareas al desmarcar"""
         for ticket in self:
             if ticket.task_ids and not ticket.closed and not ticket.is_cancelled and not ticket.is_rejected:
                 for task in ticket.task_ids:
@@ -134,7 +149,6 @@ class HelpdeskTicket(models.Model):
                         task.action_mark_as_pending()
 
     def _sync_tasks_from_stage(self):
-        """Sincronizar cuando ticket llega a etapa final"""
         for ticket in self:
             if ticket.stage_id and ticket.stage_id.fold and ticket.task_ids:
                 for task in ticket.task_ids:
@@ -144,22 +158,19 @@ class HelpdeskTicket(models.Model):
                     ticket.write({'closed': True})
 
     def _sync_ticket_closed_from_tasks(self):
-        """Cerrar ticket cuando todas las tareas están completadas"""
         for ticket in self:
             if ticket.task_ids and not ticket.closed and not ticket.is_cancelled and not ticket.is_rejected:
                 all_tasks_done = all(task.is_done for task in ticket.task_ids)
                 if all_tasks_done:
                     ticket.write({'closed': True})
-                    # CORREGIDO: Acceso seguro a stages del equipo
-                    if ticket.team_id:
+                    if ticket.team_id and hasattr(ticket.team_id, 'stage_ids'):
                         done_stage = ticket.team_id.stage_ids.filtered(
                             lambda s: s.fold
-                        ).sorted('sequence')[:1] if hasattr(ticket.team_id, 'stage_ids') else False
+                        ).sorted('sequence')[:1]
                         if done_stage:
                             ticket.write({'stage_id': done_stage.id})
     
     def action_cancel_ticket(self):
-        """Cancelar ticket"""
         for ticket in self:
             ticket.write({'is_cancelled': True, 'closed': True})
             for task in ticket.task_ids:
@@ -168,7 +179,6 @@ class HelpdeskTicket(models.Model):
         return True
 
     def action_reject_ticket(self):
-        """Rechazar ticket"""
         for ticket in self:
             ticket.write({'is_rejected': True, 'closed': True})
             for task in ticket.task_ids:
@@ -177,7 +187,6 @@ class HelpdeskTicket(models.Model):
         return True
 
     def action_unmark_ticket(self):
-        """Desmarcar ticket"""
         for ticket in self:
             ticket.write({'is_cancelled': False, 'is_rejected': False, 'closed': False})
             for task in ticket.task_ids:
