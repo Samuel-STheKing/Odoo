@@ -1,13 +1,14 @@
 {
     "name": "Helpdesk Project",
     "summary": "Add the option to select project in the tickets.",
-    "version": "16.0.1.0.3",
+    "version": "16.0.1.0.7",
     "license": "AGPL-3",
     "category": "After-Sales",
     "author": "PuntSistemes S.L.U., Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/helpdesk",
     "depends": ["helpdesk_mgmt", "project"],
     "data": [
+        # "data/project_data.xml",  # Las etapas se crean dinámicamente al cancelar/rechazar
         "views/helpdesk_ticket_view.xml",
         "views/helpdesk_ticket_team_view.xml",
         "views/project_view.xml",
@@ -15,5 +16,6 @@
         "views/project_milestone.xml",
         "views/menus.xml",
     ],
+    "post_init_hook": "post_init_hook",
     "development_status": "Production/Stable",
 }

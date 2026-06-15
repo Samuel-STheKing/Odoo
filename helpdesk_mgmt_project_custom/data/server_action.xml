@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Server Action para marcar tarea como Hecha -->
+    <record id="server_action_mark_task_done" model="ir.actions.server">
+        <field name="name">Marcar Tarea como Hecha</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="binding_model_id" ref="project.model_project_task"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+stage_hecho = model.env['project.task.type'].search([('name', '=', 'Hecho')], limit=1)
+if stage_hecho:
+    records.write({'stage_id': stage_hecho.id})
+]]></field>
+    </record>
+
+</odoo>

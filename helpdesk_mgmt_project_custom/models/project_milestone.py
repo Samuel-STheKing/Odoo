@@ -23,9 +23,11 @@ class ProjectMilestone(models.Model):
 
     def action_view_helpdesk_ticket(self):
         self.ensure_one()
-        action = self.env["ir.actions.act_window"]._for_xml_id(
-            "helpdesk_mgmt_project.action_view_helpdesk_ticket_for_milestone"
+        # Use our own module's action (defined in helpdesk_ticket_view.xml)
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "helpdesk_mgmt_project_custom.ticket_action_from_project"
         )
+        action["domain"] = [("milestone_id", "=", self.id)]
         action["context"] = {
             "default_project_id": self.project_id.id,
             "default_milestone_id": self.id,

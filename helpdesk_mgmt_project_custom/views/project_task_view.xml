@@ -6,18 +6,119 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2" />
         <field name="arch" type="xml">
+            
+            <!-- Declarar campos ocultos -->
+            <xpath expr="//form" position="inside">
+                <field name="is_done" invisible="1"/>
+                <field name="ticket_count" invisible="1"/>
+                <field name="todo_ticket_count" invisible="1"/>
+                <field name="has_cancelled_ticket" invisible="1"/>
+                <field name="has_rejected_ticket" invisible="1"/>
+                <field name="has_open_ticket" invisible="1"/>
+            </xpath>
+
+            <!-- Botones en button_box -->
             <xpath expr="//div[@name='button_box']" position="inside">
+                <!-- Botón Marcar como Realizado -->
+                <button
+                    class="oe_stat_button"
+                    type="object"
+                    icon="fa-check-circle"
+                    name="action_mark_as_done"
+                    groups="project.group_project_user"
+                    attrs="{'invisible': [('is_done', '=', True)]}"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Marcar como Realizado</span>
+                    </div>
+                </button>
+
+                <!-- Botón Tickets -->
                 <button
                     class="oe_stat_button"
                     type="object"
                     icon="fa-life-ring"
                     name="action_open_helpdesk_tickets_from_task"
-                    context="{'default_task_id': active_id, 'default_project_id': project_id}"
+                    context="{'default_task_ids': [(6, 0, [active_id])], 'default_project_id': project_id}"
                     groups="helpdesk_mgmt.group_helpdesk_user_own"
                 >
-                    <field string="Tickets" name="ticket_count" widget="statinfo" />
+                    <div class="o_stat_info">
+                        <field name="ticket_count" widget="statinfo" string="Tickets"/>
+                    </div>
+                </button>
+
+                <!-- === BOTONES CANCELAR / RECHAZAR / DESMARCAR === -->
+                <button
+                    name="action_cancel_linked_tickets"
+                    type="object"
+                    string="Cancelar"
+                    icon="fa-ban"
+                    class="oe_stat_button"
+                    attrs="{'invisible': [('has_cancelled_ticket', '=', True), ('has_rejected_ticket', '=', True)]}"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Cancelar</span>
+                    </div>
+                </button>
+
+                <button
+                    name="action_reject_linked_tickets"
+                    type="object"
+                    string="Rechazar"
+                    icon="fa-times-circle"
+                    class="oe_stat_button"
+                    attrs="{'invisible': [('has_rejected_ticket', '=', True)]}"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Rechazar</span>
+                    </div>
+                </button>
+
+                <button
+                    name="action_unmark_linked_tickets"
+                    type="object"
+                    string="Desmarcar"
+                    icon="fa-undo"
+                    class="oe_stat_button"
+                    attrs="{'invisible': ['|', ('has_cancelled_ticket', '=', False), ('has_rejected_ticket', '=', False)]}"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Desmarcar</span>
+                    </div>
                 </button>
             </xpath>
+
+            <!-- Ribbons -->
+            <!-- 1. Ribbon REALIZADO -->
+            <xpath expr="//div[hasclass('oe_button_box')]" position="before">
+                <widget name="web_ribbon"
+                        title="REALIZADO"
+                        bg_color="bg-success"
+                        attrs="{'invisible': ['|', '|', ('is_done', '=', False), ('has_cancelled_ticket', '=', True), ('has_rejected_ticket', '=', True)]}"
+                        groups="project.group_project_user"/>
+            </xpath>
+
+            <!-- 2. Ribbon CANCELADO -->
+            <xpath expr="//div[hasclass('oe_button_box')]" position="before">
+                <widget name="web_ribbon"
+                        title="CANCELADO"
+                        bg_color="bg-warning"
+                        attrs="{'invisible': ['|', ('has_cancelled_ticket', '=', False), ('has_rejected_ticket', '=', True)]}"
+                        groups="helpdesk_mgmt.group_helpdesk_user_own"/>
+            </xpath>
+
+            <!-- 3. Ribbon RECHAZADO -->
+            <xpath expr="//div[hasclass('oe_button_box')]" position="before">
+                <widget name="web_ribbon"
+                        title="RECHAZADO"
+                        bg_color="bg-danger"
+                        attrs="{'invisible': [('has_rejected_ticket', '=', False)]}"
+                        groups="helpdesk_mgmt.group_helpdesk_user_own"/>
+            </xpath>
+
         </field>
     </record>
 
@@ -29,42 +130,68 @@
             <xpath expr="//filter[@name='inactive']" position="after">
                 <separator />
                 <filter
-                    string="Open Tickets"
+                    string="Tareas Realizadas"
+                    name="done_tasks"
+                    domain="[('is_done', '=', True)]"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                />
+                <filter
+                    string="Tareas Pendientes"
+                    name="pending_tasks"
+                    domain="[('is_done', '=', False)]"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                />
+                <separator />
+                <filter
+                    string="Con Tickets Abiertos"
                     name="open_tickets"
                     domain="[('ticket_ids', '!=', False), ('ticket_ids.closed', '=', False)]"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                />
+                <filter
+                    string="Con Tickets Cancelados"
+                    name="cancelled_tickets"
+                    domain="[('ticket_ids', '!=', False), ('ticket_ids.is_cancelled', '=', True)]"
+                    groups="helpdesk_mgmt.group_helpdesk_user_own"
+                />
+                <filter
+                    string="Con Tickets Rechazados"
+                    name="rejected_tickets"
+                    domain="[('ticket_ids', '!=', False), ('ticket_ids.is_rejected', '=', True)]"
                     groups="helpdesk_mgmt.group_helpdesk_user_own"
                 />
             </xpath>
         </field>
     </record>
 
-    <!-- Kanban View - CORREGIDO -->
+    <!-- Tree View -->
+    <record id="view_task_tree_helpdesk" model="ir.ui.view">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="decoration-success">is_done == True and has_cancelled_ticket == False and has_rejected_ticket == False</attribute>
+                <attribute name="decoration-warning">has_cancelled_ticket == True and has_rejected_ticket == False</attribute>
+                <attribute name="decoration-danger">has_rejected_ticket == True</attribute>
+            </xpath>
+            <xpath expr="//tree" position="inside">
+                <field name="is_done" invisible="1"/>
+                <field name="has_cancelled_ticket" invisible="1"/>
+                <field name="has_rejected_ticket" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
     <record id="view_task_kanban_helpdesk" model="ir.ui.view">
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_kanban" />
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('oe_kanban_bottom_left')]" position="inside">
-                <div
-                    t-if="record.ticket_count and record.ticket_count.raw_value > 0"
-                    groups="helpdesk_mgmt.group_helpdesk_user_own"
-                    class="d-inline-block align-middle me-2"
-                >
-                    <a
-                        class="o_project_kanban_box text-muted"
-                        name="action_open_helpdesk_tickets_from_task"
-                        type="object"
-                    >
-                        <i class="fa fa-life-ring me-1" title="Tickets"/>
-                        <span class="o_value fw-bold">
-                            <t t-esc="record.ticket_count.raw_value"/>
-                        </span>
-                    </a>
-                </div>
-            </xpath>
-
-            <!-- Asegurar que el campo esté disponible en Kanban -->
             <xpath expr="//kanban" position="inside">
                 <field name="ticket_count"/>
+                <field name="is_done"/>
+                <field name="has_cancelled_ticket"/>
+                <field name="has_rejected_ticket"/>
             </xpath>
         </field>
     </record>
