@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menú Principal -->
+    <menuitem id="menu_reportes_root" 
+              name="Reportes" 
+              sequence="10"/>
+
+    <!-- Submenú Reportes -->
+    <menuitem id="menu_reportes_principal" 
+              name="Reportes" 
+              parent="menu_reportes_root"
+              action="action_reporte_modulo"
+              sequence="10"/>
+
+    <!-- Submenú Áreas -->
+    <menuitem id="menu_reportes_areas" 
+              name="Áreas" 
+              parent="menu_reportes_root"
+              action="action_reporte_area"
+              sequence="20"/>
+</odoo>

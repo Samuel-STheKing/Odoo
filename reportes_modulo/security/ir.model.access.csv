@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_reporte_modulo_user,reporte.modulo.user,model_reporte_modulo,base.group_user,1,1,1,1
+access_reporte_area_user,reporte.area.user,model_reporte_area,base.group_user,1,1,1,1

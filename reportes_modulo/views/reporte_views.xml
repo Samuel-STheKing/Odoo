@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Acción de ventana -->
+    <record id="action_reporte_modulo" model="ir.actions.act_window">
+        <field name="name">Reportes</field>
+        <field name="res_model">reporte.modulo</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea tu primer reporte
+            </p>
+            <p>
+                Puedes crear reportes, guardarlos como borradores 
+                o publicarlos para que otros usuarios los vean.
+            </p>
+        </field>
+    </record>
+
+    <!-- Vista Kanban -->
+    <record id="view_reporte_modulo_kanban" model="ir.ui.view">
+        <field name="name">reporte.modulo.kanban</field>
+        <field name="model">reporte.modulo</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="codigo"/>
+                <field name="titulo"/>
+                <field name="estado"/>
+                <field name="usuario_id"/>
+                <field name="fecha"/>
+                <field name="area_ids"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('res.users', 'image_128', record.usuario_id.raw_value)"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="codigo"/> - <field name="titulo"/>
+                                </strong>
+                                <div class="o_kanban_record_subtitle">
+                                    <field name="usuario_id"/>
+                                    <span class="oe_kanban_list_many2many">
+                                        <field name="area_ids"/>
+                                    </span>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <div class="badge" t-attf-class="badge-#{record.estado.raw_value == 'borrador' ? 'warning' : 'success'}">
+                                        <field name="estado"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_footer">
+                                    <field name="fecha"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vista Tree -->
+    <record id="view_reporte_modulo_tree" model="ir.ui.view">
+        <field name="name">reporte.modulo.tree</field>
+        <field name="model">reporte.modulo</field>
+        <field name="arch" type="xml">
+            <tree string="Reportes">
+                <field name="codigo"/>
+                <field name="titulo"/>
+                <field name="fecha"/>
+                <field name="usuario_id"/>
+                <field name="area_ids" widget="many2many_tags"/>
+                <field name="estado" widget="badge"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista Form -->
+    <record id="view_reporte_modulo_form" model="ir.ui.view">
+        <field name="name">reporte.modulo.form</field>
+        <field name="model">reporte.modulo</field>
+        <field name="arch" type="xml">
+            <form string="Reporte">
+                <header>
+                    <button name="action_borrador" 
+                            type="object" 
+                            string="Borrador" 
+                            class="btn-secondary"
+                            states="guardado,enviado"/>
+                    <button name="action_guardar" 
+                            type="object" 
+                            string="Guardar" 
+                            class="btn-primary"
+                            states="borrador"/>
+                    <button name="action_enviar" 
+                            type="object" 
+                            string="Enviar" 
+                            class="btn-success"
+                            states="guardado"/>
+                    <field name="estado" widget="badge"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(action_reporte_modulo)d" type="action" 
+                                class="oe_stat_button" icon="fa-list-ul">
+                            <div class="o_stat_info">
+                                <field name="codigo" class="o_stat_value"/>
+                                <span class="o_stat_text">Código</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="titulo" placeholder="Título del reporte..."/>
+                        </h1>
+                        <div class="o_row">
+                            <div class="o_group o_group_2">
+                                <div class="o_row">
+                                    <field name="fecha"/>
+                                </div>
+                                <div class="o_row">
+                                    <field name="usuario_id"/>
+                                </div>
+                                <div class="o_row">
+                                    <field name="area_ids" widget="many2many_tags" 
+                                           placeholder="Seleccionar áreas..."/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <notebook>
+                        <page string="Contenido">
+                            <field name="contenido" widget="html"/>
+                        </page>
+                        <page string="Información">
+                            <group>
+                                <group>
+                                    <field name="create_date" readonly="1"/>
+                                    <field name="create_uid" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="write_date" readonly="1"/>
+                                    <field name="write_uid" readonly="1"/>
+                                    <field name="fecha_guardado" readonly="1"/>
+                                    <field name="fecha_borrador" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Búsqueda/Filtros -->
+    <record id="view_reporte_modulo_search" model="ir.ui.view">
+        <field name="name">reporte.modulo.search</field>
+        <field name="model">reporte.modulo</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="titulo" filter_domain="['|', ('titulo','ilike',self), ('contenido','ilike',self)]"/>
+                <field name="codigo"/>
+                <field name="usuario_id"/>
+                <field name="area_ids"/>
+                <filter name="estado_borrador" string="Borrador" domain="[('estado','=','borrador')]"/>
+                <filter name="estado_guardado" string="Guardado" domain="[('estado','=','guardado')]"/>
+                <filter name="estado_enviado" string="Enviado" domain="[('estado','=','enviado')]"/>
+                <separator/>
+                <filter name="mis_reportes" string="Mis Reportes" domain="[('usuario_id','=',uid)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_estado" string="Estado" context="{'group_by':'estado'}"/>
+                    <filter name="group_usuario" string="Usuario" context="{'group_by':'usuario_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>
