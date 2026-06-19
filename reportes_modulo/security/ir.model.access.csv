@@ -1,4 +1,10 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_reporte_modulo_all,reporte.modulo.all,model_reporte_modulo,base.group_user,1,1,1,1
-access_reporte_area_read,reporte.area.read,model_reporte_area,base.group_user,1,0,0,0
-access_reporte_config_all,reporte.config.all,model_reporte_config,base.group_user,1,1,1,1
+access_reporte_modulo_lector,reporte.modulo.lector,model_reporte_modulo,reportes_modulo.group_reporte_lector,1,1,1,0
+access_reporte_modulo_editor,reporte.modulo.editor,model_reporte_modulo,reportes_modulo.group_reporte_editor,1,1,1,0
+access_reporte_modulo_supervisor,reporte.modulo.supervisor,model_reporte_modulo,reportes_modulo.group_reporte_supervisor,1,1,1,1
+access_reporte_modulo_admin,reporte.modulo.admin,model_reporte_modulo,reportes_modulo.group_reporte_administrador,1,1,1,1
+
+access_reporte_area_lector,reporte.area.lector,model_reporte_area,reportes_modulo.group_reporte_lector,1,0,0,0
+access_reporte_area_admin,reporte.area.admin,model_reporte_area,reportes_modulo.group_reporte_administrador,1,1,1,1
+
+access_reporte_config_admin,reporte.config.admin,model_reporte_config,reportes_modulo.group_reporte_administrador,1,1,1,1

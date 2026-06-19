@@ -22,11 +22,11 @@
               sequence="20"
               groups="base.group_user"/>
 
-    <!-- Menú Configuración -->
+    <!-- Menú Configuración (solo Administrador) -->
     <menuitem id="menu_reportes_configuracion" 
               name="Configuración" 
               parent="menu_reportes_root"
               action="action_reporte_configuracion"
               sequence="30"
-              groups="base.group_user"/>
+              groups="reportes_modulo.group_reporte_administrador"/>
 </odoo>
