@@ -1,6 +1,5 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
-# Elimina la línea incorrecta: from odoo.tools.html import sanitize_html
 
 class Reporte(models.Model):
     _name = 'reporte.modulo'
@@ -44,7 +43,7 @@ class Reporte(models.Model):
     contenido = fields.Html(
         string='Contenido del Reporte',
         required=True,
-        sanitize=False,  # Permite HTML sin sanitizar
+        sanitize=False,
         sanitize_attributes=False,
         sanitize_tags=False
     )
@@ -58,11 +57,13 @@ class Reporte(models.Model):
     estado = fields.Selection([
         ('borrador', 'Borrador'),
         ('guardado', 'Guardado'),
+        ('culminado', 'Culminado'),
         ('enviado', 'Enviado'),
     ], string='Estado', default='borrador', tracking=True)
     
     fecha_guardado = fields.Datetime(string='Fecha de Guardado', readonly=True)
     fecha_borrador = fields.Datetime(string='Fecha de Borrador', readonly=True)
+    fecha_culminado = fields.Datetime(string='Fecha de Culminado', readonly=True)
 
     @api.model
     def create(self, vals):
@@ -70,40 +71,92 @@ class Reporte(models.Model):
             vals['codigo'] = self.env['ir.sequence'].next_by_code('reporte.modulo') or _('Nuevo')
         return super(Reporte, self).create(vals)
 
-    def action_guardar(self):
-        """Acción para guardar el reporte"""
+    def write(self, vals):
+        # Campos protegidos que no se pueden editar en estado 'enviado'
+        campos_protegidos = {'titulo', 'fecha', 'usuario_id', 'area_ids', 'contenido'}
         for record in self:
-            # Validar contenido (verificar que no esté vacío)
-            if not record.contenido or record.contenido.strip() in ['', '<p><br></p>', '<p></p>']:
-                raise ValidationError(_('El contenido del reporte no puede estar vacío'))
-            
-            # Validar título
+            if record.estado == 'enviado' and campos_protegidos.intersection(vals.keys()):
+                raise ValidationError(_(
+                    'No se puede modificar el reporte "%s" porque ya fue enviado.'
+                ) % record.titulo)
+        return super(Reporte, self).write(vals)
+
+    def action_guardar_borrador(self):
+        """Guardar como borrador - cambia a estado borrador"""
+        for record in self:
             if not record.titulo or not record.titulo.strip():
                 raise ValidationError(_('El título no puede estar vacío'))
             
-            # Validar áreas
+            # Cambiar a estado borrador
+            record.estado = 'borrador'
+            record.fecha_borrador = fields.Datetime.now()
+            
+            # Limpiar otras fechas
+            record.fecha_guardado = False
+            record.fecha_culminado = False
+
+    def action_guardar(self):
+        """Guardar el reporte - cambia a estado guardado"""
+        for record in self:
+            # Validaciones
+            if not record.contenido or record.contenido.strip() in ['', '<p><br></p>', '<p></p>']:
+                raise ValidationError(_('El contenido del reporte no puede estar vacío'))
+            
+            if not record.titulo or not record.titulo.strip():
+                raise ValidationError(_('El título no puede estar vacío'))
+            
             if not record.area_ids:
                 raise ValidationError(_('Debes seleccionar al menos un área'))
             
+            # Cambiar a guardado
             record.estado = 'guardado'
             record.fecha_guardado = fields.Datetime.now()
-    
-    def action_borrador(self):
-        """Acción para pasar a borrador"""
+
+    def action_culminar(self):
+        """Culminar el reporte - cambia a estado culminado"""
         for record in self:
+            # Validaciones
+            if not record.contenido or record.contenido.strip() in ['', '<p><br></p>', '<p></p>']:
+                raise ValidationError(_('El contenido del reporte no puede estar vacío'))
+            
+            if not record.titulo or not record.titulo.strip():
+                raise ValidationError(_('El título no puede estar vacío'))
+            
+            if not record.area_ids:
+                raise ValidationError(_('Debes seleccionar al menos un área'))
+            
+            # Cambiar a culminado
+            record.estado = 'culminado'
+            record.fecha_culminado = fields.Datetime.now()
+            record.fecha_guardado = fields.Datetime.now()
+
+    def action_borrador(self):
+        """Volver a estado borrador"""
+        for record in self:
+            if record.estado == 'enviado':
+                raise ValidationError(_('No se puede volver a borrador un reporte enviado'))
+            
             record.estado = 'borrador'
             record.fecha_borrador = fields.Datetime.now()
-    
+            
+            # Limpiar otras fechas
+            record.fecha_guardado = False
+            record.fecha_culminado = False
+
     def action_enviar(self):
-        """Acción para enviar el reporte"""
+        """Enviar el reporte - cambia a estado enviado"""
         for record in self:
-            if record.estado != 'guardado':
-                raise ValidationError(_('El reporte debe estar guardado antes de enviarlo'))
+            if record.estado not in ['guardado', 'culminado']:
+                raise ValidationError(_('El reporte debe estar guardado o culminado antes de enviarlo'))
+            
+            # Validar campos requeridos
+            if not record.contenido or record.contenido.strip() in ['', '<p><br></p>', '<p></p>']:
+                raise ValidationError(_('El contenido del reporte no puede estar vacío'))
+            
+            if not record.titulo or not record.titulo.strip():
+                raise ValidationError(_('El título no puede estar vacío'))
+            
+            if not record.area_ids:
+                raise ValidationError(_('Debes seleccionar al menos un área'))
+            
             record.estado = 'enviado'
-    
-    @api.constrains('titulo')
-    def _check_titulo(self):
-        """Validar que el título no sea solo espacios"""
-        for record in self:
-            if record.titulo and not record.titulo.strip():
-                raise ValidationError(_('El título no puede contener solo espacios en blanco'))
