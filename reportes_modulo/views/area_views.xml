@@ -4,6 +4,7 @@
         <field name="name">Áreas</field>
         <field name="res_model">reporte.area</field>
         <field name="view_mode">tree,form</field>
+        <!-- Elimina esta línea: <field name="view_id" ref="view_reporte_area_tree"/> -->
     </record>
 
     <record id="view_reporte_area_tree" model="ir.ui.view">
@@ -26,11 +27,11 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="nombre" placeholder="Ej: RECURSOS HUMANOS"/>
-                            <field name="descripcion" placeholder="Descripción del área..."/>
+                            <field name="nombre" readonly="1"/>
+                            <field name="descripcion" readonly="1"/>
                         </group>
                         <group>
-                            <field name="activo"/>
+                            <field name="activo" readonly="1"/>
                         </group>
                     </group>
                 </sheet>

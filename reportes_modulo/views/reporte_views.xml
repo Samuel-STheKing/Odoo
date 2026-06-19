@@ -10,7 +10,7 @@
                 Crea tu primer reporte
             </p>
             <p>
-                Puedes crear reportes, guardarlos como borradores 
+                Puedes crear reportes, guardarlos como borradores
                 o culminarlos cuando estén terminados.
             </p>
         </field>
@@ -81,86 +81,87 @@
         <field name="arch" type="xml">
             <form string="Reporte">
                 <header>
-                    <!-- Botón Guardar Borrador: visible solo en borrador -->
                     <button name="action_guardar_borrador"
                             type="object"
                             string="Guardar Borrador"
                             class="btn-secondary"
                             attrs="{'invisible': [('estado', '!=', 'borrador')]}"/>
 
-                    <!-- Botón Guardar: visible solo en borrador -->
                     <button name="action_guardar"
                             type="object"
                             string="Guardar"
                             class="btn-primary"
                             attrs="{'invisible': [('estado', '!=', 'borrador')]}"/>
 
-                    <!-- Botón Culminar: visible en borrador o guardado -->
                     <button name="action_culminar"
                             type="object"
                             string="Culminar"
                             class="btn-success"
                             attrs="{'invisible': [('estado', 'in', ['culminado', 'enviado'])]}"/>
 
-                    <!-- Botón Volver a Borrador: visible en guardado o culminado -->
                     <button name="action_borrador"
                             type="object"
                             string="Volver a Borrador"
                             class="btn-warning"
-                            confirm="¿Estás seguro de volver a borrador? Se limpiarán las fechas de guardado y culminado."
+                            confirm="¿Estás seguro de volver a borrador?"
                             attrs="{'invisible': [('estado', 'in', ['borrador', 'enviado'])]}"/>
 
-                    <!-- Botón Enviar: visible en guardado o culminado -->
                     <button name="action_enviar"
                             type="object"
                             string="Enviar"
                             class="btn-danger"
-                            confirm="¿Confirmas el envío del reporte? Esta acción no se puede revertir."
+                            confirm="¿Confirmas el envío del reporte?"
                             attrs="{'invisible': [('estado', 'in', ['borrador', 'enviado'])]}"/>
 
-                    <!-- Barra de estados del flujo -->
                     <field name="estado"
                            widget="statusbar"
                            statusbar_visible="borrador,guardado,culminado,enviado"
                            readonly="1"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button name="%(action_reporte_modulo)d" type="action" 
-                                class="oe_stat_button" icon="fa-list-ul">
-                            <div class="o_stat_info">
-                                <field name="codigo" class="o_stat_value"/>
-                                <span class="o_stat_text">Código</span>
-                            </div>
-                        </button>
-                    </div>
+                    <!-- Ribbons -->
+                    <widget name="web_ribbon"
+                            title="Borrador"
+                            bg_color="bg-secondary"
+                            attrs="{'invisible': [('estado', '!=', 'borrador')]}"/>
+                    <widget name="web_ribbon"
+                            title="Guardado"
+                            bg_color="bg-primary"
+                            attrs="{'invisible': [('estado', '!=', 'guardado')]}"/>
+                    <widget name="web_ribbon"
+                            title="Culminado"
+                            bg_color="bg-success"
+                            attrs="{'invisible': [('estado', '!=', 'culminado')]}"/>
+                    <widget name="web_ribbon"
+                            title="Enviado"
+                            bg_color="bg-danger"
+                            attrs="{'invisible': [('estado', '!=', 'enviado')]}"/>
+
                     <div class="oe_title">
                         <h1>
-                            <field name="titulo" placeholder="Título del reporte..."
-                                   attrs="{'readonly': [('estado', '=', 'enviado')]}"/>
+                            <field name="titulo" placeholder="Título del reporte..."/>
                         </h1>
                         <div class="o_row">
                             <div class="o_group o_group_2">
                                 <div class="o_row">
-                                    <field name="fecha"
-                                           attrs="{'readonly': [('estado', '=', 'enviado')]}"/>
+                                    <field name="codigo" readonly="1"/>
                                 </div>
                                 <div class="o_row">
-                                    <field name="usuario_id"
-                                           attrs="{'readonly': [('estado', '=', 'enviado')]}"/>
+                                    <field name="fecha"/>
                                 </div>
                                 <div class="o_row">
-                                    <field name="area_ids" widget="many2many_tags" 
-                                           placeholder="Seleccionar áreas..."
-                                           attrs="{'readonly': [('estado', '=', 'enviado')]}"/>
+                                    <field name="usuario_id"/>
+                                </div>
+                                <div class="o_row">
+                                    <field name="area_ids" widget="many2many_tags"
+                                           placeholder="Seleccionar áreas..."/>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <notebook>
                         <page string="Contenido">
-                            <field name="contenido" widget="html"
-                                   attrs="{'readonly': [('estado', '=', 'enviado')]}"/>
+                            <field name="contenido" widget="html"/>
                         </page>
                         <page string="Información">
                             <group>

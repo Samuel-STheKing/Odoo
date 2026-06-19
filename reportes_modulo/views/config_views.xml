@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_reporte_configuracion" model="ir.actions.act_window">
+        <field name="name">Configuración</field>
+        <field name="res_model">reporte.config</field>
+        <field name="view_mode">form,tree</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Vista Tree -->
+    <record id="view_reporte_config_tree" model="ir.ui.view">
+        <field name="name">reporte.config.tree</field>
+        <field name="model">reporte.config</field>
+        <field name="arch" type="xml">
+            <tree string="Roles de Usuario">
+                <field name="usuario_id"/>
+                <field name="rol" widget="badge"
+                       decoration-success="rol == 'administrador'"
+                       decoration-info="rol == 'supervisor'"
+                       decoration-warning="rol == 'editor'"
+                       decoration-muted="rol == 'lector'"/>
+                <field name="activo"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista Form -->
+    <record id="view_reporte_config_form" model="ir.ui.view">
+        <field name="name">reporte.config.form</field>
+        <field name="model">reporte.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuración de Roles">
+                <sheet>
+
+                    <!-- Tu rol actual (banner informativo) -->
+                    <div class="alert alert-info" role="alert" style="margin-bottom:16px;">
+                        <strong>Tu rol actual:</strong>
+                        <field name="rol_actual"
+                               readonly="1"
+                               widget="badge"
+                               style="margin-left:8px;font-size:1em;"
+                               decoration-success="rol_actual == 'administrador'"
+                               decoration-info="rol_actual == 'supervisor'"
+                               decoration-warning="rol_actual == 'editor'"
+                               decoration-muted="rol_actual == 'lector'"/>
+                    </div>
+
+                    <!-- Asignación de rol -->
+                    <group string="Asignar Rol a Usuario">
+                        <group>
+                            <field name="usuario_id"
+                                   placeholder="Seleccionar usuario..."/>
+                            <field name="rol"/>
+                            <field name="activo"/>
+                        </group>
+                        <group string="Permisos según rol">
+                            <div style="padding:4px 0;">
+                                <strong>Administrador:</strong> acceso completo, gestiona áreas y roles.<br/>
+                                <strong>Supervisor:</strong> revisa y aprueba reportes, edita de otros.<br/>
+                                <strong>Editor:</strong> crea y edita sus propios reportes.<br/>
+                                <strong>Lector:</strong> solo visualiza reportes.
+                            </div>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -3,19 +3,30 @@
     <!-- Menú Principal -->
     <menuitem id="menu_reportes_root" 
               name="Reportes" 
-              sequence="10"/>
+              sequence="10"
+              groups="base.group_user"/>
 
-    <!-- Submenú Reportes -->
+    <!-- Menú para crear reportes (vista kanban) -->
     <menuitem id="menu_reportes_principal" 
-              name="Reportes" 
+              name="Mis Reportes" 
               parent="menu_reportes_root"
               action="action_reporte_modulo"
-              sequence="10"/>
+              sequence="10"
+              groups="base.group_user"/>
 
-    <!-- Submenú Áreas -->
+    <!-- Menú Áreas (solo lectura) -->
     <menuitem id="menu_reportes_areas" 
               name="Áreas" 
               parent="menu_reportes_root"
               action="action_reporte_area"
-              sequence="20"/>
+              sequence="20"
+              groups="base.group_user"/>
+
+    <!-- Menú Configuración -->
+    <menuitem id="menu_reportes_configuracion" 
+              name="Configuración" 
+              parent="menu_reportes_root"
+              action="action_reporte_configuracion"
+              sequence="30"
+              groups="base.group_user"/>
 </odoo>
