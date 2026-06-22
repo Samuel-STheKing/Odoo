@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_reporte_modulo_all,reporte.modulo.all,model_reporte_modulo,base.group_user,1,1,1,1
-access_reporte_area_read,reporte.area.read,model_reporte_area,base.group_user,1,0,0,0
-access_reporte_config_all,reporte.config.all,model_reporte_config,base.group_user,1,1,1,1

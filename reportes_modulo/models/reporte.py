@@ -12,6 +12,16 @@ class Reporte(models.Model):
     def _get_default_usuario(self):
         return self.env.user.id
 
+    @api.model
+    def _get_default_areas(self):
+        """Retorna las áreas configuradas para el usuario actual"""
+        user = self.env.user
+        config = self.env['reporte.config'].search([
+            ('usuario_id', '=', user.id),
+            ('activo', '=', True)
+        ], limit=1)
+        return config.area_ids.ids if config else []
+
     codigo = fields.Char(
         string='Código',
         required=True,
@@ -31,6 +41,7 @@ class Reporte(models.Model):
         string='Usuario',
         default=_get_default_usuario,
         required=True,
+        readonly=True,
         tracking=True
     )
     
@@ -54,7 +65,10 @@ class Reporte(models.Model):
         'reporte_id',
         'area_id',
         string='Áreas',
-        required=True
+        required=True,
+        default=_get_default_areas,
+        readonly=True,           # ← Campo readonly en modelo
+        force_save=False
     )
     
     estado = fields.Selection([
@@ -72,10 +86,23 @@ class Reporte(models.Model):
     def create(self, vals):
         if vals.get('codigo', _('Nuevo')) == _('Nuevo'):
             vals['codigo'] = self.env['ir.sequence'].next_by_code('reporte.modulo') or _('Nuevo')
+        
+        vals['usuario_id'] = self.env.user.id
+        
+        # Forzar áreas automáticas
+        if not vals.get('area_ids'):
+            vals['area_ids'] = [(6, 0, self._get_default_areas())]
+        
         return super(Reporte, self).create(vals)
 
     def write(self, vals):
-        campos_protegidos = {'titulo', 'fecha', 'usuario_id', 'area_ids', 'contenido'}
+        vals.pop('usuario_id', None)
+        
+        # Bloquear completamente el cambio de áreas
+        if 'area_ids' in vals:
+            vals.pop('area_ids')
+        
+        campos_protegidos = {'titulo', 'fecha', 'contenido'}
         for record in self:
             if record.estado == 'enviado' and campos_protegidos.intersection(vals.keys()):
                 raise ValidationError(_(
@@ -83,6 +110,7 @@ class Reporte(models.Model):
                 ) % record.titulo)
         return super(Reporte, self).write(vals)
 
+    # ... (el resto de métodos action_ se mantienen iguales)
     def action_guardar_borrador(self):
         for record in self:
             if not record.titulo or not record.titulo.strip():

@@ -139,7 +139,8 @@
 
                     <div class="oe_title">
                         <h1>
-                            <field name="titulo" placeholder="Título del reporte..."/>
+                            <field name="titulo" placeholder="Título del reporte..."
+                                   attrs="{'readonly': [('estado', '=', 'enviado')]}"/>
                         </h1>
                         <div class="o_row">
                             <div class="o_group o_group_2">
@@ -147,21 +148,26 @@
                                     <field name="codigo" readonly="1"/>
                                 </div>
                                 <div class="o_row">
-                                    <field name="fecha"/>
+                                    <field name="fecha"
+                                           attrs="{'readonly': [('estado', '=', 'enviado')]}"/>
                                 </div>
                                 <div class="o_row">
-                                    <field name="usuario_id"/>
+                                    <field name="usuario_id" readonly="1"/>
                                 </div>
                                 <div class="o_row">
-                                    <field name="area_ids" widget="many2many_tags"
-                                           placeholder="Seleccionar áreas..."/>
+                                    <field name="area_ids" 
+                                           widget="many2many_tags"
+                                           placeholder="Áreas asignadas automáticamente"
+                                           readonly="1"
+                                           force_save="0"/>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <notebook>
                         <page string="Contenido">
-                            <field name="contenido" widget="html"/>
+                            <field name="contenido" widget="html"
+                                   attrs="{'readonly': [('estado', '=', 'enviado')]}"/>
                         </page>
                         <page string="Información">
                             <group>

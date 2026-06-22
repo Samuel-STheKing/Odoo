@@ -6,7 +6,7 @@
               sequence="10"
               groups="base.group_user"/>
 
-    <!-- Menú para crear reportes (vista kanban) -->
+    <!-- Menú para crear reportes -->
     <menuitem id="menu_reportes_principal" 
               name="Mis Reportes" 
               parent="menu_reportes_root"
@@ -14,7 +14,7 @@
               sequence="10"
               groups="base.group_user"/>
 
-    <!-- Menú Áreas (solo lectura) -->
+    <!-- Menú Áreas -->
     <menuitem id="menu_reportes_areas" 
               name="Áreas" 
               parent="menu_reportes_root"
@@ -22,7 +22,7 @@
               sequence="20"
               groups="base.group_user"/>
 
-    <!-- Menú Configuración (solo Administrador) -->
+    <!-- Menú Configuración → SOLO ADMINISTRADOR -->
     <menuitem id="menu_reportes_configuracion" 
               name="Configuración" 
               parent="menu_reportes_root"
