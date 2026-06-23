@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, AccessError
+
 
 class Reporte(models.Model):
     _name = 'reporte.modulo'
@@ -16,11 +17,14 @@ class Reporte(models.Model):
     def _get_default_areas(self):
         """Retorna las áreas configuradas para el usuario actual"""
         user = self.env.user
-        config = self.env['reporte.config'].search([
+        config = self.env['reporte.config'].sudo().search([
             ('usuario_id', '=', user.id),
             ('activo', '=', True)
         ], limit=1)
-        return config.area_ids.ids if config else []
+        
+        if config and config.area_ids:
+            return [(6, 0, config.area_ids.ids)]
+        return [(5, 0, 0)]  # Vacío
 
     codigo = fields.Char(
         string='Código',
@@ -66,9 +70,7 @@ class Reporte(models.Model):
         'area_id',
         string='Áreas',
         required=True,
-        default=_get_default_areas,
-        readonly=True,           # ← Campo readonly en modelo
-        force_save=False
+        default=_get_default_areas
     )
     
     estado = fields.Selection([
@@ -84,22 +86,24 @@ class Reporte(models.Model):
 
     @api.model
     def create(self, vals):
-        if vals.get('codigo', _('Nuevo')) == _('Nuevo'):
-            vals['codigo'] = self.env['ir.sequence'].next_by_code('reporte.modulo') or _('Nuevo')
+        # CORRECCIÓN: Siempre generar código nuevo para evitar duplicados
+        vals['codigo'] = self.env['ir.sequence'].next_by_code('reporte.modulo') or _('Nuevo')
         
         vals['usuario_id'] = self.env.user.id
         
-        # Forzar áreas automáticas
         if not vals.get('area_ids'):
-            vals['area_ids'] = [(6, 0, self._get_default_areas())]
+            default_areas = self._get_default_areas()
+            if default_areas and default_areas[0][0] == 6 and default_areas[0][1]:
+                vals['area_ids'] = default_areas
+            else:
+                raise ValidationError(_('No tienes áreas asignadas. Contacta al administrador.'))
         
         return super(Reporte, self).create(vals)
 
     def write(self, vals):
         vals.pop('usuario_id', None)
         
-        # Bloquear completamente el cambio de áreas
-        if 'area_ids' in vals:
+        if 'area_ids' in vals and not self.env.user.has_group('reportes_modulo.group_reporte_administrador'):
             vals.pop('area_ids')
         
         campos_protegidos = {'titulo', 'fecha', 'contenido'}
@@ -108,9 +112,9 @@ class Reporte(models.Model):
                 raise ValidationError(_(
                     'No se puede modificar el reporte "%s" porque ya fue enviado.'
                 ) % record.titulo)
+        
         return super(Reporte, self).write(vals)
 
-    # ... (el resto de métodos action_ se mantienen iguales)
     def action_guardar_borrador(self):
         for record in self:
             if not record.titulo or not record.titulo.strip():

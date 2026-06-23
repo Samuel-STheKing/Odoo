@@ -29,4 +29,4 @@
               action="action_reporte_configuracion"
               sequence="30"
               groups="reportes_modulo.group_reporte_administrador"/>
-</odoo>
+</odoo> 

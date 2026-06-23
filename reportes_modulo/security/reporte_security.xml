@@ -32,7 +32,10 @@
 
     <!-- Reglas de Seguridad -->
     <data noupdate="1">
-        <!-- Reportes -->
+        
+        <!-- ============================================ -->
+        <!-- REGLA 1: ADMINISTRADOR - Ve TODO             -->
+        <!-- ============================================ -->
         <record id="rule_reporte_admin" model="ir.rule">
             <field name="name">Reportes - Admin Total</field>
             <field name="model_id" search="[('model','=','reporte.modulo')]"/>
@@ -44,24 +47,65 @@
             <field name="perm_unlink" eval="1"/>
         </record>
 
-        <record id="rule_reporte_user" model="ir.rule">
-            <field name="name">Reportes - Usuarios Normales</field>
+        <!-- ============================================ -->
+        <!-- REGLA 2: SUPERVISOR - Ve sus reportes + los  -->
+        <!--          de su área                          -->
+        <!-- ============================================ -->
+        <record id="rule_reporte_supervisor" model="ir.rule">
+            <field name="name">Reportes - Supervisor por Área</field>
             <field name="model_id" search="[('model','=','reporte.modulo')]"/>
             <field name="domain_force">
-                ['|', ('usuario_id', '=', user.id), ('area_ids', 'in', user.reporte_area_ids.ids)]
+                ['|',
+                    ('usuario_id', '=', user.id),
+                    ('area_ids', 'in', user.reporte_area_ids.ids)
+                ]
             </field>
-            <field name="groups" eval="[(4, ref('group_reporte_lector'))]"/>
+            <field name="groups" eval="[(4, ref('group_reporte_supervisor'))]"/>
             <field name="perm_read" eval="1"/>
             <field name="perm_write" eval="1"/>
             <field name="perm_create" eval="1"/>
             <field name="perm_unlink" eval="0"/>
         </record>
 
-        <!-- Configuración - BLOQUEAR COMPLETAMENTE PARA USUARIOS NORMALES -->
+        <!-- ============================================ -->
+        <!-- REGLA 3: EDITOR - Ve SOLO sus reportes       -->
+        <!-- ============================================ -->
+        <record id="rule_reporte_editor" model="ir.rule">
+            <field name="name">Reportes - Editor (Solo propios)</field>
+            <field name="model_id" search="[('model','=','reporte.modulo')]"/>
+            <field name="domain_force">
+                [('usuario_id', '=', user.id)]
+            </field>
+            <field name="groups" eval="[(4, ref('group_reporte_editor'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- REGLA 4: LECTOR - Ve SOLO sus reportes       -->
+        <!-- ============================================ -->
+        <record id="rule_reporte_lector" model="ir.rule">
+            <field name="name">Reportes - Lector (Solo propios)</field>
+            <field name="model_id" search="[('model','=','reporte.modulo')]"/>
+            <field name="domain_force">
+                [('usuario_id', '=', user.id)]
+            </field>
+            <field name="groups" eval="[(4, ref('group_reporte_lector'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="0"/>
+            <field name="perm_create" eval="0"/>
+            <field name="perm_unlink" eval="0"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- Configuración - Acceso solo Admin            -->
+        <!-- ============================================ -->
         <record id="rule_reporte_config_read" model="ir.rule">
             <field name="name">Config - Sin acceso para no administradores</field>
             <field name="model_id" search="[('model','=','reporte.config')]"/>
-            <field name="domain_force">[(0, '=', 1)]</field>  <!-- ✅ Domain que siempre retorna False -->
+            <field name="domain_force">[(0, '=', 1)]</field>
             <field name="groups" eval="[(4, ref('group_reporte_lector'))]"/>
             <field name="perm_read" eval="0"/>
             <field name="perm_write" eval="0"/>
@@ -69,7 +113,6 @@
             <field name="perm_unlink" eval="0"/>
         </record>
 
-        <!-- Configuración - Solo Admin puede gestionar -->
         <record id="rule_reporte_config_admin" model="ir.rule">
             <field name="name">Config - Admin Total</field>
             <field name="model_id" search="[('model','=','reporte.config')]"/>
@@ -81,7 +124,9 @@
             <field name="perm_unlink" eval="1"/>
         </record>
 
-        <!-- Áreas -->
+        <!-- ============================================ -->
+        <!-- Áreas - Todos pueden leer, solo Admin escribir -->
+        <!-- ============================================ -->
         <record id="rule_area_read" model="ir.rule">
             <field name="name">Áreas - Lectura General</field>
             <field name="model_id" search="[('model','=','reporte.area')]"/>
