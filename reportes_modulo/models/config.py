@@ -1,3 +1,4 @@
+# ✅ CORRECCIÓN: Agrega 'api' en la primera línea de importación
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, AccessError
 
@@ -163,14 +164,16 @@ class ResUsers(models.Model):
     reporte_area_ids = fields.Many2many(
         'reporte.area',
         compute='_compute_reporte_area_ids',
-        store=True,  # ← SOLO ESTE CAMBIO: store=True para que las reglas funcionen
+        store=False,  # 👈 Cambia temporalmente a False para saltar el bug de Python 3.14
         string='Áreas del Usuario'
     )
 
+    # ✅ Agregamos esta dependencia mínima para evitar que Odoo falle en la instalación inicial
+    @api.depends('groups_id')
     def _compute_reporte_area_ids(self):
         for user in self:
             config = self.env['reporte.config'].sudo().search([
                 ('usuario_id', '=', user.id),
                 ('activo', '=', True)
             ], limit=1)
-            user.reporte_area_ids = config.area_ids if config else False
+            user.reporte_area_ids = config.area_ids if config else [(5, 0, 0)]

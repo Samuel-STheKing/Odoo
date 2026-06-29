@@ -9,7 +9,4 @@ access_reporte_area_editor,reporte.area.editor,model_reporte_area,reportes_modul
 access_reporte_area_supervisor,reporte.area.supervisor,model_reporte_area,reportes_modulo.group_reporte_supervisor,1,0,0,0
 access_reporte_area_admin,reporte.area.admin,model_reporte_area,reportes_modulo.group_reporte_administrador,1,1,1,1
 
-access_reporte_config_lector,reporte.config.lector,model_reporte_config,reportes_modulo.group_reporte_lector,0,0,0,0
-access_reporte_config_editor,reporte.config.editor,model_reporte_config,reportes_modulo.group_reporte_editor,0,0,0,0
-access_reporte_config_supervisor,reporte.config.supervisor,model_reporte_config,reportes_modulo.group_reporte_supervisor,0,0,0,0
 access_reporte_config_admin,reporte.config.admin,model_reporte_config,reportes_modulo.group_reporte_administrador,1,1,1,1
